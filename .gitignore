@@ -1,24 +1,15 @@
 # Dependencies
 node_modules/
-*/node_modules/
 
-# Environment files
+# Env files
 .env
 .env.local
 .env.production
-backend/.env
-backend/.env.example
-backend/.env.production
-frontend/.env.local
-frontend/.env.production
+.env.development
+.env.example
 
-# Build output
-frontend/build/
-dist/
-
-# Uploads (user content - store in cloud storage in production)
-backend/uploads/images/
-backend/uploads/videos/
+# Uploads (user media)
+uploads/
 
 # Logs
 *.log
@@ -27,8 +18,3 @@ npm-debug.log*
 # OS
 .DS_Store
 Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-*.swp
