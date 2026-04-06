@@ -2,29 +2,33 @@
 node_modules/
 */node_modules/
 
-# All env files everywhere
+# Environment files
 .env
 .env.local
 .env.production
-.env.development
-**/.env
-**/.env.local
-**/.env.production
-**/.env.development
-
-# Specifically the backend ones
 backend/.env
-backend/.env.production
 backend/.env.example
-
-# Frontend
+backend/.env.production
 frontend/.env.local
 frontend/.env.production
 
-# Build
+# Build output
 frontend/build/
 dist/
+
+# Uploads (user content - store in cloud storage in production)
+backend/uploads/images/
+backend/uploads/videos/
+
+# Logs
+*.log
+npm-debug.log*
 
 # OS
 .DS_Store
 Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
