@@ -1,0 +1,223 @@
+# 🌐 SocialConnect — Full-Stack MERN Social Media Platform
+
+A complete social media application built with the MERN stack (MongoDB, Express, React, Node.js) and styled with TailwindCSS.
+
+---
+
+## ✨ Features
+
+- **Authentication** — Register, Login, Forgot/Reset/Change Password, JWT sessions
+- **News Feed** — Posts from you and friends, paginated
+- **Posts** — Create/Edit/Delete with text, photos, videos; privacy controls (Public/Friends/Private)
+- **Comments** — Nested comments with edit, delete, like
+- **Likes** — Like/unlike posts and comments
+- **Notifications** — Real-time-style alerts for likes, comments, friend requests
+- **Stories** — 24h photo/video stories with text overlays, viewer counts
+- **Friend Requests** — Send, accept, decline, cancel, unfriend
+- **User Profiles** — Edit bio, location, website; upload profile pic & cover photo
+- **Search** — Live user search in the navbar
+- **Explore** — Browse all public posts
+
+---
+
+## 🗂️ Project Structure
+
+```
+socialapp/
+├── backend/              # Express + MongoDB API
+│   ├── controllers/      # Route logic
+│   ├── middleware/       # Auth, upload middleware
+│   ├── models/           # Mongoose schemas
+│   ├── routes/           # Express routers
+│   ├── uploads/          # Media storage (local)
+│   ├── server.js
+│   ├── Dockerfile
+│   └── render.yaml       # Render.com deploy config
+│
+├── frontend/             # React + TailwindCSS SPA
+│   ├── src/
+│   │   ├── components/   # Reusable UI components
+│   │   ├── context/      # Auth context
+│   │   ├── pages/        # Route pages
+│   │   └── utils/        # Axios instance
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   └── vercel.json       # Vercel deploy config
+│
+├── docker-compose.yml    # Full local Docker setup
+└── package.json          # Root scripts
+```
+
+---
+
+```
+
+
+---
+
+## ☁️ Deploying to Production
+
+### Backend → [Render.com](https://render.com) (Free tier)
+
+1. Push your repo to GitHub
+2. Go to **render.com** → New → Web Service
+3. Connect your GitHub repo, set **Root Directory** to `backend`
+4. Set **Build Command**: `npm install`
+5. Set **Start Command**: `node server.js`
+6. Add Environment Variables:
+   ```
+   MONGO_URI         = mongodb+srv://...  (from MongoDB Atlas)
+   JWT_SECRET        = <random 32+ char string>
+   JWT_EXPIRE        = 7d
+   NODE_ENV          = production
+   CLIENT_URL        = https://your-frontend.vercel.app
+   ```
+7. Add a **Disk** (for file uploads):
+   - Mount path: `/opt/render/project/src/uploads`
+   - Size: 1GB (free)
+8. Deploy ✅
+
+> **Note:** For production with many users, use **Cloudinary** or **AWS S3** for media instead of local disk. See the Cloudinary section below.
+
+---
+
+### Frontend → [Vercel](https://render.com) (Free tier)
+
+1. Go to **render.com** → New Project → Import GitHub repo
+2. Set **Root Directory** to `frontend`
+3. Set **Framework Preset** to `Create React App`
+4. Add Environment Variable:
+   ```
+   REACT_APP_API_URL = https://your-backend.onrender.com/api
+   ```
+5. Deploy ✅
+
+---
+
+### Database → [MongoDB Atlas](https://mongodb.com/atlas) (Free tier)
+
+1. Create account → Build a Database → Free M0 tier
+2. Create a user (username + password)
+3. Whitelist IP: `0.0.0.0/0` (allow all — required for Render)
+4. Get connection string:
+   ```
+   mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/socialapp
+   ```
+5. Paste into Render's `MONGO_URI` env var
+
+---
+
+## 📦 Optional: Cloudinary for Media (Recommended for Production)
+
+For persistent, scalable file storage replace local uploads with Cloudinary:
+
+1. Create free account at [cloudinary.com](https://cloudinary.com)
+2. Install: `npm install cloudinary multer-storage-cloudinary`
+3. Update `backend/middleware/upload.js`:
+
+```js
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const multer = require('multer');
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_KEY,
+  api_secret: process.env.CLOUDINARY_SECRET
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: { folder: 'socialapp', resource_type: 'auto' }
+});
+
+module.exports = multer({ storage });
+```
+
+4. Add to `.env`:
+```
+CLOUDINARY_NAME=your_cloud_name
+CLOUDINARY_KEY=your_api_key
+CLOUDINARY_SECRET=your_api_secret
+```
+
+5. Update all controllers: use `req.file.path` (Cloudinary URL) instead of building `/uploads/...` paths.
+
+---
+
+## 🔐 Security Checklist for Production
+
+- [ ] Change `JWT_SECRET` to a long random string (use `openssl rand -hex 32`)
+- [ ] Set `NODE_ENV=production`
+- [ ] Set `CLIENT_URL` to your exact frontend domain
+- [ ] Use MongoDB Atlas with strong password + IP whitelist
+- [ ] Use Cloudinary or S3 for file uploads (not local disk)
+- [ ] Enable HTTPS (Render + Vercel handle this automatically)
+- [ ] Consider rate limiting: `npm install express-rate-limit`
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 18, React Router v6, TailwindCSS |
+| Backend | Node.js, Express 4 |
+| Database | MongoDB, Mongoose |
+| Auth | JWT, bcryptjs |
+| File Uploads | Multer (local) / Cloudinary (production) |
+| Email | Nodemailer |
+| Deploy (BE) | Render.com |
+| Deploy (FE) | Vercel |
+| Deploy (DB) | MongoDB Atlas |
+
+---
+
+## 📝 API Endpoints
+
+### Auth
+| Method | Route | Description |
+|--------|-------|-------------|
+| POST | /api/auth/register | Register user |
+| POST | /api/auth/login | Login |
+| GET | /api/auth/me | Get current user |
+| POST | /api/auth/forgot-password | Request reset email |
+| PUT | /api/auth/reset-password/:token | Reset password |
+| PUT | /api/auth/change-password | Change password |
+
+### Posts
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | /api/posts/feed | Get friend feed |
+| GET | /api/posts/explore | Get public posts |
+| POST | /api/posts | Create post |
+| PUT | /api/posts/:id | Edit post |
+| DELETE | /api/posts/:id | Delete post |
+| PUT | /api/posts/:id/like | Toggle like |
+
+### Friends
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | /api/friends | Get friends list |
+| GET | /api/friends/requests | Get pending requests |
+| POST | /api/friends/request/:userId | Send request |
+| PUT | /api/friends/respond/:userId | Accept/decline |
+| DELETE | /api/friends/unfriend/:userId | Unfriend |
+| DELETE | /api/friends/cancel/:userId | Cancel sent request |
+
+### Stories
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | /api/stories/feed | Get friends' stories |
+| POST | /api/stories | Create story |
+| PUT | /api/stories/:id/view | Record view |
+| DELETE | /api/stories/:id | Delete story |
+
+---
+
+## 💡 Tips
+
+- Stories auto-expire after 24 hours via MongoDB TTL index
+- The feed algorithm shows friends' posts first, sorted by recency
+- All media is served from `/uploads/` in development; use Cloudinary in production
+- Notifications poll every 30 seconds for new counts
